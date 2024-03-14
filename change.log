@@ -1,0 +1,57 @@
+V4:
+Updated variable names from parent_{blank} to library_{blank} for logic/conistency. 
+
+
+fixer.sh:
+    Added a bjob upon completion that simply echos complete and ends. This allows for jobscript.sh to have an id to identify when the fixing script has finished. 
+
+jobscript.sh:
+    Added Seqtools_fastq.sh and compresser.sh to the workflow.
+
+        Seqtools_fastq is dependent on the fixer_complete_${library_root_name} being finished.
+
+        Compresser is dependent currently on the Seqtools_fastq being completed. If any new tasks are added, the wait function needs to be updated. 
+
+
+Compresser.sh:
+    Designed to be ran at the end of all jobs, creating a compressed directory of everything created during the job. 
+    As jobs are added, this file needs to be updated as shown with the other functions in the script. 
+Seqtools_fastq.sh: 
+    While .bam is the prefered output for dorado (it allows for the various tags to be created and stored, assemblers and other programs only accept fastq input. 
+    As such, the trimmed bam files are exported into fastq formats. 
+
+
+
+
+
+V3:
+
+Due to the discovered error here https://github.com/nanoporetech/dorado/issues/617:
+     Jobs can now only be placed on the A100 GPU. 
+
+
+V2:
+
+Major Overhaul. 
+
+Removed Summaryfile.sh
+Improved jobscript.sh to have help function and be a controller for all files. 
+Only jobscript.sh now submits jobs to the cluster (removed the header functions from individual files). 
+
+Dorado.sh now can create summary files of untrimmed and/or trimmed reads. (Defaults: False and True respectively)
+
+Created Fixer.sh, however it crashed the LSF...has since been patched by both myself and IT.
+    Found out that jobarray for LSF can only have a max character count of 255. As such began experimenting with fixer_batch.sh
+    Confirmed functionality.
+
+
+V1: 
+
+Discovered Duplexing, current test version does not do summary files. 
+
+V0:
+First major version. 
+
+Went with the summary file version due to examples seen on the LSF. 
+
+Currently set to Basecalling and no summary files. 
