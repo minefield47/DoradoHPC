@@ -9,7 +9,7 @@
 # ~/dorado/jobscript.sh -i </path/to/pod5/directory> <optional arguments>
 
 ################################################################################
-# Help                                                                         #
+# Help (Removed switchcase so deprecated but still helpful)                                      #
 ################################################################################
 Help()
 {
@@ -206,14 +206,14 @@ bsub \
 ################################################################################
 #When all files are finished being utilized, submit this compressing script that takes all outputs and tars/gzips them.
 
-#Replace the -w if more commands get added. 
+#Currently turned off as it creates an archive of files down the absolute path. Need to fix. 
 
-bsub \
--w "done("seqtools_to_fastq_${library_directory_name}")" \
--J compresser_${library_directory_name} \
--n 1 \
--W 240 \
--q serial \
--o compresser.stdout.%J \
--e compresser.stderr.%J_%I \
-"~/dorado/compresser.sh <library_directory>"
+# bsub \
+# -w "done("seqtools_to_fastq_${library_directory_name}")" \
+# -J compresser_${library_directory_name} \
+# -n 1 \
+# -W 240 \
+# -q serial \
+# -o compresser.stdout.%J \
+# -e compresser.stderr.%J_%I \
+# "~/dorado/compresser.sh <library_directory>"

@@ -29,7 +29,7 @@ library_root_name=$(basename ${library_root_directory})
 # SIMPLEX_ONLY: Output the paired simplex parents and the unpaired simplex reads: for utilization of kmer counting. 
 # DUPLEX_NO_PARENTS: Duplex reads and the unpaired simplex reads. 
 
-subset="${2:DUPLEX_NO_PARENTS}"
+subset="${2:ALL}"
 
 for bam_file in $trimmed_bam_directory/*; do
     bam_file_name=$(basename ${bam_file} | cut -d. -f1)

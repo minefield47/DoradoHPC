@@ -3,7 +3,7 @@ Updated variable names from parent_{blank} to library_{blank} for logic/conisten
 
 
 fixer.sh:
-    Added a bjob upon completion that simply echos complete and ends. This allows for jobscript.sh to have an id to identify when the fixing script has finished. 
+    Added a bjob upon completion that simply echos complete and ends. Allows for jobscript.sh to have an id to identify when the fixing script has finished. 
 
 jobscript.sh:
     Added Seqtools_fastq.sh and compresser.sh to the workflow.
