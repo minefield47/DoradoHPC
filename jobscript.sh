@@ -6,7 +6,7 @@
 # Simply run the script with the required argument ($1) being the input directory
 
 #Run Script:
-# ~/dorado/jobscript.sh -i </path/to/pod5/directory> <optional arguments>
+# ~/dorado/jobscript.sh -p </path/to/pod5/directory> <optional arguments>
 
 ################################################################################
 # Help                                                                         #
@@ -189,15 +189,17 @@ bsub \
 #When the fixer script completes itself, it submits a job to the cluster named "fixer_complete_${library_root_name}"
 #This allows the fixer to run multiple times and not proceed down jobscript until no blank files remain. 
 
-bsub \
--w "done("fixer_complete_${library_root_name}")" \
--J seqtools_to_fastq_${library_directory_name} \
--n 1 \
--W 240 \
--q serial \
--o seqtool.fastq..stdout%J \
--e seqtool.fastq.stderr.%J \
-"~/dorado/seqtools_fastq.sh <trimmed_bam_directory>"
+
+# Apparently LSF no longer 
+# bsub \
+# -w "done("fixer_complete_${library_root_name}")" \
+# -J seqtools_to_fastq_${library_directory_name} \
+# -n 1 \
+# -W 240 \
+# -q serial \
+# -o seqtool.fastq..stdout%J \
+# -e seqtool.fastq.stderr.%J \
+# "~/dorado/seqtools_fastq.sh <trimmed_bam_directory>"
 
 
 
