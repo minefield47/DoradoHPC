@@ -9,7 +9,7 @@
 # ~/dorado/jobscript.sh -i </path/to/pod5/directory> <optional arguments>
 
 ################################################################################
-# Help (Removed switchcase so deprecated but still helpful)                                      #
+# Help                                                                         #
 ################################################################################
 Help()
 {
