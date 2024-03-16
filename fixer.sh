@@ -77,10 +77,9 @@ library_root_directory=$(dirname $basecall_trim_directory)
 library_root_name=$(basename $library_root_directory)
 
 ################################################################################
-# Inputs Numbers                                                               #
+# Summary Files                                                                #
 ################################################################################
-#Determine the file numbers. 
-
+#Do un/trimmed bams get summary files
 
 untrim_summary="${2:-FALSE}"
 trim_summary="${3:-TRUE}"

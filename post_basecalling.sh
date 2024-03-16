@@ -2,8 +2,12 @@
 #Author: Auden Block
 #Contact arb4107 {@} uncw {.} edu
 
+#These are the final post_processing to be conducted after basecalling. 
+# As they are only reading the bam files, they can all be executed in parallel. 
+
+
 ################################################################################
-# Variable Definitions                                                         #
+# Directory Definitions                                                        #
 ################################################################################
 #Assign the directory in which output directory. 
 basecall_trim_directory=$(dirname $1)
@@ -23,14 +27,62 @@ library_root_directory=$(dirname $basecall_trim_directory)
 library_root_name=$(basename $library_root_directory)
 
 ################################################################################
-# Seqtools Export Trimmed Reads                                                #
+# Summary Files                                                                #
 ################################################################################
+#Do un/trimmed bams get summary files
+
+untrim_summary="${2:-FALSE}"
+trim_summary="${3:-TRUE}"
+
+################################################################################
+# Summary Condenser                                                            #
+################################################################################
+#
+
+if [ "${trim_summary^^}" == "TRUE" ]; then
 bsub \
--w "done("fixer_complete_${library_root_name}")" \
--J seqtools_to_fastq_${library_directory_name} \
+-J tsv_condenser_${library_directory_name} \
 -n 1 \
 -W 240 \
 -q serial \
 -o seqtool.fastq..stdout%J \
 -e seqtool.fastq.stderr.%J \
-"~/dorado/seqtools_fastq.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam"
+"~/dorado/summary_condenser.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_summary"
+fi
+
+if [ "${untrim_summary^^}" == "TRUE" ]; then
+bsub \
+-J tsv_condenser_${library_directory_name} \
+-n 1 \
+-W 240 \
+-q serial \
+-o seqtool.fastq..stdout%J \
+-e seqtool.fastq.stderr.%J \
+"~/dorado/summary_condenser.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_untrimmed_summary"
+fi
+
+################################################################################
+# Seqtools Export All Trimmed Reads                                            #
+################################################################################
+#Export ALL of the trimmed reads to fastq format for assembly.
+bsub \
+-J bam_all_fastq_${library_directory_name} \
+-n 1 \
+-W 240 \
+-q serial \
+-o seqtool.fastq..stdout%J \
+-e seqtool.fastq.stderr.%J \
+"~/dorado/seqtools_fastq.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam ALL"
+
+################################################################################
+# Seqtools Export Simplex Only Trimmed Reads                                  #
+################################################################################
+#
+bsub \
+-J bam_simplex_fastq_${library_directory_name} \
+-n 1 \
+-W 240 \
+-q serial \
+-o seqtool.fastq..stdout%J \
+-e seqtool.fastq.stderr.%J \
+"~/dorado/seqtools_fastq.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam SIMPLEX_ONLY"
