@@ -54,7 +54,6 @@ while getopts "p:u:t:h:" OPTION;do
         h) 
             Help #Run the Help function (above) and exit. 
             exit;;
-
         p) 
             pod5_directory="$OPTARG" ;;
         u) 
@@ -190,7 +189,7 @@ bsub \
 #This allows the fixer to run multiple times and not proceed down jobscript until no blank files remain. 
 
 
-# Apparently LSF no longer 
+# Apparently LSF does not like this...
 # bsub \
 # -w "done("fixer_complete_${library_root_name}")" \
 # -J seqtools_to_fastq_${library_directory_name} \

@@ -62,7 +62,7 @@
 #Assign the directory in which output directory. 
 basecall_trim_directory=$(dirname $1)
 
-#Remover of the trailing / for when using independently of the job script. 
+#Remover of the trailing / for when using independently of basecalling.sh
 if [ "${basecall_trim_directory:0-1}" == "/" ]; then #Check if the last character in the string is equal to /
 basecall_trim_directory=${basecall_trim_directory%?} #If yes, remove the last character (/) of string to have it be in compliance with dorado. 
 fi 
@@ -143,10 +143,10 @@ bsub \
 else 
     echo "All channels successfully basecalled"
     bsub \ 
-    -J fixer_complete_${library_root_name} \
+    -J  \
     -n 1 \
     -W 1 \
     -o Dorado_fixer.stdout.%J_%I \
     -e Dorado_fixer.stderr.%J_%I \
-    "echo complete"
+    "~/dorado/post_basecalling.sh $1 $untrim_summary $trim_summary"
 fi

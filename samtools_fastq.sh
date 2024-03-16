@@ -49,8 +49,6 @@ for bam_file in $trimmed_bam_directory/*; do
         samtools fastq $bam_file -d 'dx:-1' >> ${library_root_directory}/${library_root_name}_${subset}.trimmed.fastq
 
     fi
-    
-  
 done
 
 conda deactivate
