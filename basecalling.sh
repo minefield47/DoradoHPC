@@ -14,22 +14,24 @@
 Help()
 {
    # Display Help
-   echo "This script is the driver for taking raw pod5 files directly from the sequencer and automatically proceed all the way to summary file generation"
-   echo
-   echo "Syntax: jobscript.sh -i <optional: >"
-   echo "options:"
-   echo "   Required:"
-   echo "       -p     Pod5 directory of files for basecalling. This can be with or without trailing /"
-   echo "    Optional:"
-   echo "       -h     Print this help screen."
-   echo "       -u     Default = FALSE || Create a summary directory of the untrimmed reads."
-   echo "       -t     Default = TRUE ||Create a summary directory of the trimmed reads."
-   echo
+    echo "This script is the driver for taking raw pod5 files directly from the sequencer and automatically proceed all the way to summary file generation"
+    echo
+    echo "Syntax: jobscript.sh -p <pod5_directory_path> <optional arguments>"
+    echo "options:"
+    echo "   Required:"
+    echo "       -p     Pod5 directory of files for basecalling. This can be with or without trailing /"
+    echo "    Optional:"
+    echo "       -h     Print this help screen."
+    echo "       -u     Default = FALSE || Create a summary directory of the Untrimmed reads."
+    echo "       -t     Default = TRUE ||Create a summary directory of the Trimmed reads."
+    echo "       -f     Default = trimmed || Convert bam files into a single fastq file. This flag can be called multiple times for multiple file types (-f trimmed -f untrimmed)."
+    echo "       -s     Default = ALL || Subset of Simplex/Duplex reads to output. This flag can be called multiple times for multiple file types (-s ALL -s SIMPLEX_ONLY)."
+    echo "                  ALL: Output everything, duplex, paired simplex parents of the duplex data, and unpaired simplex reads"
+    echo "                  SIMPLEX_ONLY: Paired simplex parents and the unpaired simplex reads."
+    echo "                  DUPLEX_NO_PARENTS: Duplex reads and the unpaired simplex reads. "
+    echo "                  DUPLEX_ONLY: Duplex reads only. "
+    echo
 }
-
-
-
-
 
 ################################################################################
 # Input                                                                        #
@@ -43,17 +45,19 @@ unset -v pod5_directory #Where are the files coming from? <directory path>
 #Set the optional arguments to default parameters. 
 untrim_summary="FALSE"
 trim_summary="TRUE"
-
+type_array="trimmed"
+subset_array="ALL"
 #i = input directory. 
 #u=untrim_summary.
 #t=trim_summary.
 
 #Input switch case for determining 
-while getopts "p:u:t:h:" OPTION;do 
+while getopts "p:u:t:hf:s:" OPTION;do 
     case $OPTION in
         h) 
             Help #Run the Help function (above) and exit. 
             exit;;
+
         p) 
             pod5_directory="$OPTARG" ;;
         u) 
@@ -70,12 +74,26 @@ while getopts "p:u:t:h:" OPTION;do
                 echo "Non-Boolean True/False given for -t"
                 exit 1
             fi;;
+        s) 
+            if [ ${OPTARG^^} == "ALL" ] || [ ${OPTARG^^} == "DUPLEX_NO_PARENTS" ] || [ ${OPTARG^^} == "SIMPLEX_ONLY" ] || [ ${OPTARG^^} == "SIMPLEX_ONLY" ]; then #What subset of reads do you want?
+                subset_array+=("${OPTARG^^}")
+            else #Error Checker.
+                echo "Invalid Parameter given. Valid options for -s: ALL, DUPLEX_NO_PARENTS, SIMPLEX_ONLY, DUPLEX_ONLY"
+                exit 1
+            fi;;
+        t) 
+            if [ ${OPTARG,,} == "trimmed" ] || [ ${OPTARG,,} == "untrimmed" ]; then #what type of reads are provided. This is to give the file the right typage. 
+                type_array+="${OPTARG,,}"
+            else #Error Checker.
+                echo "Invalid Parameter given. Valid options for -t: trimmed, untrimmed"
+                exit 1
+            fi;;      
     esac 
 done
 
-
-#Shift the number of provided options so that the remaining calls start at $1 
-shift "$(( OPTIND - 1 ))" 
+#Typically a shift for the number of provided options so that remaining calls start at $1...
+# However, any additional options given here are going to be considered invalid so removed. 
+# shift "$(( OPTIND - 1 ))" 
 
 
 #If indir is missing, throw an error. 
@@ -176,31 +194,10 @@ bsub \
 -q short \
 -o Fixer_stdout.%J_%I \
 -e Fixer_stderr.%J_%I \
-"~/dorado/fixer.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam $untrim_summary $trim_summary" 
+"~/dorado/fixer.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam $untrim_summary $trim_summary $type_array $subset_array" 
 
 #This script should take a maximum of 1 minute, 3 is buffer. 
 #The indir/untrim_summary/trim_summary are passed to fixer for utilization during job submission. 
-
-
-################################################################################
-# Seqtools Export Trimmed Reads                                                #
-################################################################################
-#When the fixer script completes itself, it submits a job to the cluster named "fixer_complete_${library_root_name}"
-#This allows the fixer to run multiple times and not proceed down jobscript until no blank files remain. 
-
-
-# Apparently LSF does not like this...
-# bsub \
-# -w "done("fixer_complete_${library_root_name}")" \
-# -J seqtools_to_fastq_${library_directory_name} \
-# -n 1 \
-# -W 240 \
-# -q serial \
-# -o seqtool.fastq..stdout%J \
-# -e seqtool.fastq.stderr.%J \
-# "~/dorado/seqtools_fastq.sh <trimmed_bam_directory>"
-
-
 
 ################################################################################
 # Compressing                                                                  #

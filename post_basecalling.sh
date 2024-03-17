@@ -62,27 +62,18 @@ bsub \
 fi
 
 ################################################################################
-# Seqtools Export All Trimmed Reads                                            #
+# Seqtools Export Reads                                            #
 ################################################################################
-#Export ALL of the trimmed reads to fastq format for assembly.
+#Export trimmed reads to fastq format for assembly.
+type_array="${4:-trimmed}"
+subset="${5:-("ALL" "SIMPLEX_ONLY")}"
+for type in ${type_array}; do
 bsub \
--J bam_all_fastq_${library_directory_name} \
+-J bam_all_fastq_${type}_${library_directory_name} \
 -n 1 \
--W 240 \
+-W 30 \
 -q serial \
 -o seqtool.fastq..stdout%J \
 -e seqtool.fastq.stderr.%J \
-"~/dorado/seqtools_fastq.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam ALL"
-
-################################################################################
-# Seqtools Export Simplex Only Trimmed Reads                                  #
-################################################################################
-#
-bsub \
--J bam_simplex_fastq_${library_directory_name} \
--n 1 \
--W 240 \
--q serial \
--o seqtool.fastq..stdout%J \
--e seqtool.fastq.stderr.%J \
-"~/dorado/seqtools_fastq.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam SIMPLEX_ONLY"
+"~/dorado/seqtools_fastq.sh -b ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_${type}_bam -s ${subset} -t ${type}"
+done

@@ -2,15 +2,13 @@
 #Author: Auden Block
 #Contact arb4107 {@} uncw {.} edu
 
-#Because LSB can sometimes send jobs to the cluster/GPUs that do not have enough memory (crashing the basecalling)
-#This script waits for Dorado_by_channel to finish and runs a quanitative analyzer that either passes and ends,
-# or resubmits Dorado for the channels that failed. 
+#Because LSF can sometimes send jobs to the cluster/GPUs that do not have enough memory (crashing the basecalling)
+#This script finds files with zero-bytes that either passes (no 0-size files found) and ends...submitting post_basecalling.sh to the cluster,
+# or resubmits dorado.sh and fixer.sh for the channels that failed to be tried again. 
 
 
-# If running via terminal this command can just be submitted as a bash command
-# it will automatically submit the proper job to loop and check until all channels have been fixed. 
-
-
+# If running via terminal this command can just be submitted as a bash command (bash fixer.sh $untrim_summary $trim_summary $type_array $subset_array)
+# This job is not resource intensive so can be ran on a login node before submitting the intesive commands to loop until all channels have been fixed. 
 
 
 ################################################################################
@@ -84,6 +82,13 @@ library_root_name=$(basename $library_root_directory)
 untrim_summary="${2:-FALSE}"
 trim_summary="${3:-TRUE}"
 
+
+
+#These two are not used here but are instead simply passed from basecalling to post_basecalling for utilization.
+type_array="${4:-trimmed}"
+subset_array="${5:-ALL}"
+
+
 ################################################################################
 # File Numbers                                                                 #
 ################################################################################
@@ -136,7 +141,7 @@ bsub \
 -W 10 \
 -o Dorado_fixer.stdout.%J_%I \
 -e Dorado_fixer.stderr.%J_%I \
-"~/dorado/fixer.sh $1 $untrim_summary $trim_summary"
+"~/dorado/fixer.sh $1 $untrim_summary $trim_summary $type_array $subset_array"
 
 
 else 
@@ -147,5 +152,5 @@ else
     -W 1 \
     -o Dorado_fixer.stdout.%J_%I \
     -e Dorado_fixer.stderr.%J_%I \
-    "~/dorado/post_basecalling.sh $1 $untrim_summary $trim_summary"
+    "~/dorado/post_basecalling.sh $1 $untrim_summary $trim_summary $type_array $subset_array"
 fi
