@@ -51,7 +51,7 @@ Help()
 subset_array="ALL"
 type="trimmed"
 
-while getopts "hb:t:s:" OPTION;do 
+while getopts "hb:f:s:" OPTION;do 
     case $OPTION in
         b) 
             bam_directory="$OPTARG" ;;
@@ -65,7 +65,7 @@ while getopts "hb:t:s:" OPTION;do
                 echo "Invalid Parameter given. Valid options for -s: ALL, DUPLEX_NO_PARENTS, SIMPLEX_ONLY, DUPLEX_ONLY"
                 exit 1
             fi;;
-        t) 
+        f) 
             if [ ${OPTARG,,} == "trimmed" ] || [ ${OPTARG,,} == "untrimmed" ]; then #what type of reads are provided. This is to give the file the right typage. 
                 type="${OPTARG,,}"
             else #Error Checker.

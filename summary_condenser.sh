@@ -22,5 +22,6 @@ library_root_directory=$(dirname $summary_directory)
 # From previous example...returns: bp_g-madeup
 library_root_name=$(basename $library_root_directory)
 
-mkdir ${library_root_directory}/${library_directory_name}_basecall_trim/${library_directory_name}_condensed
-~/apps/tsv-append -H ${summary_directory}/*.csv >> ${library_root_directory}/${library_directory_name}_all.tsv
+mkdir ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_condensed
+~/apps/tsv-append -H ${summary_directory}/*.csv >> ${library_root_directory}/${library_root_name}_all.tsv
+

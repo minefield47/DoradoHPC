@@ -7,7 +7,7 @@
 # or resubmits dorado.sh and fixer.sh for the channels that failed to be tried again. 
 
 
-# If running via terminal this command can just be submitted as a bash command (bash fixer.sh $untrim_summary $trim_summary $type_array $subset_array)
+#bash fixer.sh -u $untrim_summary -t $trim_summary $type_array $subset_array)
 # This job is not resource intensive so can be ran on a login node before submitting the intesive commands to loop until all channels have been fixed. 
 
 
@@ -57,6 +57,50 @@
 # Returns: /home/arb4107/share/bp_g-madeup
 # Which is the root of the library we are basecalling, and the parent directory of bp_g-madeup_pod5_by_channel...our destination directory
 
+
+untrim_summary="FALSE"
+trim_summary="TRUE"
+type_array="-f trimmed"
+subset_array=("-s ALL" "-s SIMPLEX_ONLY")
+
+while getopts "t:s:f:u:" OPTION;do 
+    case $OPTION in
+        s) 
+            if [ ${OPTARG^^} == "ALL" ] || [ ${OPTARG^^} == "DUPLEX_NO_PARENTS" ] || [ ${OPTARG^^} == "SIMPLEX_ONLY" ] || [ ${OPTARG^^} == "SIMPLEX_ONLY" ]; then #What subset of reads do you want?
+                subset_array+=("-s ${OPTARG^^}")
+            else #Error Checker.
+                echo "Invalid Parameter given. Valid options for -s: ALL, DUPLEX_NO_PARENTS, SIMPLEX_ONLY, DUPLEX_ONLY"
+                exit 1
+            fi;;
+        f) 
+            if [ ${OPTARG,,} == "trimmed" ] || [ ${OPTARG,,} == "untrimmed" ]; then #what type of reads are provided. This is to give the file the right typage. 
+                type_array+=("-f ${OPTARG,,}")
+            else #Error Checker.
+                echo "Invalid Parameter given. Valid options for -t: trimmed, untrimmed"
+                exit 1
+            fi;;
+        u) 
+            if [ ${OPTARG^^} == TRUE ] || [ ${OPTARG^^} == FALSE ]; then #Do you want a summary file of the untrimmed reads?  TRUE OR FALSE?
+                untrim_summary="${OPTARG^^}"
+            else #Error Checker.
+                echo "Non-Boolean True/False given for -u"
+                exit 1
+            fi;;
+        t) 
+            if [ ${OPTARG^^} == TRUE ] || [ ${OPTARG^^} == FALSE ]; then #Do you want a summary file of the untrimmed reads?  TRUE OR FALSE?
+                trim_summary="${OPTARG^^}"
+            else #Error Checker.
+                echo "Non-Boolean True/False given for -t"
+                exit 1
+            fi;;            
+    esac 
+done
+
+
+#Shift for the number of provided options so that remaining calls start at $1...
+shift "$(( OPTIND - 1 ))" 
+
+
 #Assign the directory in which output directory. 
 basecall_trim_directory=$(dirname $1)
 
@@ -73,22 +117,6 @@ library_root_directory=$(dirname $basecall_trim_directory)
 #Now our pod5_by_channel directory is stored with the library name in front of it..."bp_g-madeup_pod5_by_channel"...so we need the basename of the path...or the library name. 
 # From previous example...returns: bp_g-madeup
 library_root_name=$(basename $library_root_directory)
-
-################################################################################
-# Summary Files                                                                #
-################################################################################
-#Do un/trimmed bams get summary files
-
-untrim_summary="${2:-FALSE}"
-trim_summary="${3:-TRUE}"
-
-
-
-#These two are not used here but are instead simply passed from basecalling to post_basecalling for utilization.
-type_array="${4:-trimmed}"
-subset_array="${5:-ALL}"
-
-
 ################################################################################
 # File Numbers                                                                 #
 ################################################################################
@@ -141,10 +169,11 @@ bsub \
 -W 10 \
 -o Dorado_fixer.stdout.%J_%I \
 -e Dorado_fixer.stderr.%J_%I \
-"~/dorado/fixer.sh $1 $untrim_summary $trim_summary $type_array $subset_array"
+"~/dorado/fixer.sh -u $untrim_summary -t $trim_summary ${type_array[@]} ${subset_array[@]} $1"
 
 
 else 
+
     echo "All channels successfully basecalled"
     bsub \ 
     -J  \
@@ -152,5 +181,5 @@ else
     -W 1 \
     -o Dorado_fixer.stdout.%J_%I \
     -e Dorado_fixer.stderr.%J_%I \
-    "~/dorado/post_basecalling.sh $1 $untrim_summary $trim_summary $type_array $subset_array"
+    "~/dorado/post_basecalling.sh -u $untrim_summary -t $trim_summary ${type_array[@]} ${subset_array[@]} -b ${basecall_trim_directory}"
 fi
