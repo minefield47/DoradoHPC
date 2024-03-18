@@ -5,15 +5,16 @@
 #These are the final post_processing to be conducted after basecalling. 
 # As they are only reading the bam files, they can all be executed in parallel. 
 
-# bash ~/dorado/post_basecalling.sh -b 
+# bash ~/dorado/post_basecalling.sh -b /home/arb4107/share/bp_g4_testing/bp_g4/bp_g4_basecall_trim
 
-type_array="-f trimmed"
+type_array=("trimmed")
 subset_array=("-s ALL" "-s SIMPLEX_ONLY")
-
+untrim_summary="FALSE"
+trim_summary="TRUE"
 while getopts "b:t:s:f:u:" OPTION;do 
     case $OPTION in
         b) 
-            basecall_trim_directory="$OPTARG" ;;
+            basecall_trim_directory="${OPTARG}" ;;
         s) 
             if [ ${OPTARG^^} == "ALL" ] || [ ${OPTARG^^} == "DUPLEX_NO_PARENTS" ] || [ ${OPTARG^^} == "SIMPLEX_ONLY" ] || [ ${OPTARG^^} == "SIMPLEX_ONLY" ]; then #What subset of reads do you want?
                 subset_array+=("-s ${OPTARG^^}")
@@ -23,7 +24,7 @@ while getopts "b:t:s:f:u:" OPTION;do
             fi;;
         f) 
             if [ ${OPTARG,,} == "trimmed" ] || [ ${OPTARG,,} == "untrimmed" ]; then #what type of reads are provided. This is to give the file the right typage. 
-                type_array+="${OPTARG,,}"
+                type_array+=("${OPTARG,,}")
             else #Error Checker.
                 echo "Invalid Parameter given. Valid options for -t: trimmed, untrimmed"
                 exit 1
@@ -65,6 +66,7 @@ fi
 # From previous example...returns: bp_g-madeup
 library_root_name=$(basename $(dirname $basecall_trim_directory))
 
+
 ################################################################################
 # Summary Files                                                                #
 ################################################################################
@@ -73,7 +75,6 @@ library_root_name=$(basename $(dirname $basecall_trim_directory))
 ################################################################################
 # Summary Condenser                                                            #
 ################################################################################
-#
 
 if [ "${untrim_summary^^}" == "TRUE" ]; then
 bsub \
@@ -81,8 +82,8 @@ bsub \
 -n 1 \
 -W 240 \
 -q serial \
--o seqtool.fastq..stdout%J \
--e seqtool.fastq.stderr.%J \
+-o tsv_condenser_untrimmed.stdout%J \
+-e tsv_condenser_untrimmed.stderr.%J \
 "~/dorado/summary_condenser.sh ${basecall_trim_directory}/${library_root_name}_untrimmed_summary"
 fi
 
@@ -92,8 +93,8 @@ bsub \
 -n 1 \
 -W 240 \
 -q serial \
--o seqtool.fastq..stdout%J \
--e seqtool.fastq.stderr.%J \
+-o tsv_condenser_trimmed.stdout%J \
+-e tsv_condenser_trimmed.stderr.%J \
 "~/dorado/summary_condenser.sh ${basecall_trim_directory}/${library_root_name}_trimmed_summary"
 fi
 
@@ -109,7 +110,7 @@ bsub \
 -n 1 \
 -W 30 \
 -q serial \
--o seqtool.fastq..stdout%J \
--e seqtool.fastq.stderr.%J \
+-o seqtool.fastq.${type}.stdout%J \
+-e seqtool.fastq.${type}.stderr.%J \
 "~/dorado/seqtools_fastq.sh -b ${basecall_trim_directory}/${library_root_name}_${type}_bam ${subset_array[@]} -f ${type}"
 done
