@@ -39,20 +39,9 @@ trim_summary="${3:-TRUE}"
 ################################################################################
 #
 
-if [ "${untrim_summary^^}" == "TRUE" ]; then
-bsub \
--J tsv_condenser_untrimmed_${library_directory_name} \
--n 1 \
--W 240 \
--q serial \
--o seqtool.fastq..stdout%J \
--e seqtool.fastq.stderr.%J \
-"~/dorado/summary_condenser.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_untrimmed_summary"
-fi
-
 if [ "${trim_summary^^}" == "TRUE" ]; then
 bsub \
--J tsv_condenser_trimmed_${library_directory_name} \
+-J tsv_condenser_${library_directory_name} \
 -n 1 \
 -W 240 \
 -q serial \
@@ -61,8 +50,19 @@ bsub \
 "~/dorado/summary_condenser.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_summary"
 fi
 
+if [ "${untrim_summary^^}" == "TRUE" ]; then
+bsub \
+-J tsv_condenser_${library_directory_name} \
+-n 1 \
+-W 240 \
+-q serial \
+-o seqtool.fastq..stdout%J \
+-e seqtool.fastq.stderr.%J \
+"~/dorado/summary_condenser.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_untrimmed_summary"
+fi
+
 ################################################################################
-# Seqtools Export Reads                                                        #
+# Seqtools Export Reads                                            #
 ################################################################################
 #Export trimmed reads to fastq format for assembly.
 type_array="${4:-trimmed}"

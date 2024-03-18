@@ -161,8 +161,8 @@ bsub \
 -R "select[a100]" \
 -q new_gpu \
 -gpu "num=1:mode=shared:mps=no" \
--o stdout.%J \
--e stderr.%J \
+-o stdout.%J_%I \
+-e stderr.%J_%I \
 "~/dorado/dorado.sh ${library_root_directory}/${library_root_name}_pod5_by_channel $untrim_summary $trim_summary" 
 
 #-J pod5_sorting = jobname
@@ -192,8 +192,8 @@ bsub \
 -n 1 \
 -W 05 \
 -q short \
--o Fixer_stdout.%J \
--e Fixer_stderr.%J \
+-o Fixer_stdout.%J_%I \
+-e Fixer_stderr.%J_%I \
 "~/dorado/fixer.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam $untrim_summary $trim_summary $type_array $subset_array" 
 
 #This script should take a maximum of 1 minute, 3 is buffer. 
