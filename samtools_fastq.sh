@@ -40,6 +40,7 @@ Help()
     
     echo
 }
+
 ################################################################################
 # Defaults and Sorting                                                         #
 ################################################################################
@@ -85,12 +86,11 @@ shift "$(( OPTIND - 1 ))"
 ################################################################################
 #Input of trimmed_bam directory:
 
-echo $bam_directory
+
 #Take the directory of the directory: /home/arb4107/share/bp_g1.3_random_gpus/bp_g1/
 library_root_directory=$(dirname $(dirname ${bam_directory}))
 #Get the basename: bp_g1
 library_root_name=$(basename ${library_root_directory})
-
 
 ################################################################################
 # Make Directory                                                               #
@@ -102,9 +102,8 @@ library_root_name=$(basename ${library_root_directory})
 ################################################################################
 for subset in "${subset_array[@]}"; do
     #For users that apply -s multiple times, an array of types will be created. As such, iterate each index of array.
-    for bam_file in $trimmed_bam_directory/*; do
-        bam_file_name=$(basename ${bam_file} | cut -d. -f1)
-
+    for bam_file in ${bam_directory}/*.bam; do
+        
         if [ "${subset^^}" == "ALL" ]; then 
             
             samtools fastq $bam_file -T '*' >> ${library_root_directory}/${library_root_name}_${subset}.${type}.fastq
@@ -121,7 +120,7 @@ for subset in "${subset_array[@]}"; do
 
         elif [ "${subset^^}" == "DUPLEX_ONLY" ];then
         
-            samtools fastq $bam_file -d 'dx:1' >> ${library_root_directory}/${library_root_name}_${subset}.${type}.fastq
+            echo fastq $bam_file -d 'dx:1' >> ${library_root_directory}/${library_root_name}_${subset}.${type}.fastq
 
         fi
     done
