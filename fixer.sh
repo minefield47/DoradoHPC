@@ -7,7 +7,7 @@
 # or resubmits dorado.sh and fixer.sh for the channels that failed to be tried again. 
 
 
-#bash fixer.sh -u $untrim_summary -t $trim_summary $type_array $subset_array)
+#~/dorado/fixer.sh -u $untrim_summary -t $trim_summary ${type_array[@]} ${subset_array[@]} ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam
 # This job is not resource intensive so can be ran on a login node before submitting the intesive commands to loop until all channels have been fixed. 
 
 
@@ -150,8 +150,8 @@ if [ ${#blank_file_numbers} -gt 0 ];then
         -R "select[a100]" \
         -q new_gpu \
         -gpu "num=1:mode=shared:mps=no" \
-        -o Dorado_fixer.stdout.%J_%I \
-        -e Dorado_fixer.stderr.%J_%I \
+        -o Dorado_fixer.stdout.%J \
+        -e Dorado_fixer.stderr.%J \
         "~/dorado/dorado.sh ${library_root_directory}/${library_root_name}_pod5_by_channel $untrim_summary $trim_summary" 
 
         blank_file_numbers=${blank_file_numbers#$batch}
@@ -167,19 +167,19 @@ bsub \
 -J fixer_${library_root_name} \
 -n 1 \
 -W 10 \
--o Dorado_fixer.stdout.%J_%I \
--e Dorado_fixer.stderr.%J_%I \
-"~/dorado/fixer.sh -u $untrim_summary -t $trim_summary ${type_array[@]} ${subset_array[@]} $1"
+-o Dorado_fixer.stdout.%J \
+-e Dorado_fixer.stderr.%J \
+"~/dorado/fixer.sh -u $untrim_summary -t $trim_summary" ${type_array[@]} ${subset_array[@]} $1
 
 
 else 
 
     echo "All channels successfully basecalled"
     bsub \ 
-    -J  \
+    -J Dorado_post_basecalling_${library_root_name} \
     -n 1 \
     -W 1 \
-    -o Dorado_fixer.stdout.%J_%I \
-    -e Dorado_fixer.stderr.%J_%I \
-    "~/dorado/post_basecalling.sh -u $untrim_summary -t $trim_summary ${type_array[@]} ${subset_array[@]} -b ${basecall_trim_directory}"
+    -o Dorado_post_basecalling.stdout.%J \
+    -e Dorado_post_basecalling.stderr.%J \
+    "~/dorado/post_basecalling.sh -u $untrim_summary -t $trim_summary" ${type_array[@]} ${subset_array[@]} "-b ${basecall_trim_directory}"
 fi

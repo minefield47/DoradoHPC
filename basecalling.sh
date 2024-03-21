@@ -6,7 +6,7 @@
 # Simply run the script with the required argument ($1) being the input directory
 
 #Run Script:
-# ~/dorado/jobscript.sh -p </path/to/pod5/directory> <optional arguments>
+# ~/dorado/basecalling.sh -p </path/to/pod5/directory> <optional arguments>
 
 ################################################################################
 # Help                                                                         #
@@ -57,7 +57,6 @@ while getopts "p:u:t:f:s:h" OPTION;do
         h) 
             Help #Run the Help function (above) and exit. 
             exit;;
-
         p) 
             pod5_directory="$OPTARG" ;;
         u) 
@@ -194,7 +193,7 @@ bsub \
 -q short \
 -o Fixer_stdout.%J \
 -e Fixer_stderr.%J \
-"~/dorado/fixer.sh -u $untrim_summary -t $trim_summary ${type_array[@]} ${subset_array[@]} ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam" 
+"~/dorado/fixer.sh -u $untrim_summary -t $trim_summary" ${type_array[@]} ${subset_array[@]} "${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam" 
 
 #This script should take a maximum of 1 minute, 3 is buffer. 
 #The indir/untrim_summary/trim_summary are passed to fixer for utilization during job submission. 
