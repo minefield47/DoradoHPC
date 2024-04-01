@@ -55,7 +55,7 @@ type="trimmed"
 while getopts "hb:f:s:" OPTION;do 
     case $OPTION in
         b) 
-            bam_directory="${OPTARG}" ;;
+            bam_file="${OPTARG}" ;;
         h) 
             Help #Run the Help function (above) and exit. 
             exit ;;
@@ -79,7 +79,7 @@ done
 #Shift for the number of provided options so that remaining calls start at $1...
 shift "$(( OPTIND - 1 ))" 
 
-: ${bam_directory:?Missing bam input directory}
+: ${bam_file:?Missing bam input}
 
 ################################################################################
 # Directory Definitions                                                        #
@@ -88,7 +88,7 @@ shift "$(( OPTIND - 1 ))"
 
 
 #Take the directory of the directory: /home/arb4107/share/bp_g1.3_random_gpus/bp_g1/
-library_root_directory=$(dirname $(dirname ${bam_directory}))
+library_root_directory=$(dirname $(dirname ${bam_file}))
 #Get the basename: bp_g1
 library_root_name=$(basename ${library_root_directory})
 
@@ -102,24 +102,24 @@ mkdir ${library_root_directory}/${library_root_name}_fastq
 # Execution                                                                    #
 ################################################################################
 for subset in "${subset_array[@]}"; do
-        
+
     if [ "${subset^^}" == "ALL" ]; then 
         
-        samtools fastq $bam_file -T '*' >> ${library_root_directory}/${library_root_name}_fastq/${library_root_name}_${subset}.${type}.fastq
+        samtools fastq $bam_file -T '*' > ${library_root_directory}/${library_root_name}_fastq/${library_root_name}_${subset}.${type}.fastq
     
     elif [ "${subset^^}" == "DUPLEX_NO_PARENTS" ];then
 
-        samtools fastq $bam_file -d 'dx:1' >> ${library_root_directory}/${library_root_name}_fastq/${library_root_name}_${subset}.${type}.fastq
-        samtools fastq $bam_file -d 'dx:0' >> ${library_root_directory}/${library_root_name}_fastq/${library_root_name}_${subset}.${type}.fastq
+        samtools fastq $bam_file -d 'dx:1' > ${library_root_directory}/${library_root_name}_fastq/${library_root_name}_${subset}.${type}.fastq
+        samtools fastq $bam_file -d 'dx:0' > ${library_root_directory}/${library_root_name}_fastq/${library_root_name}_${subset}.${type}.fastq
         
     elif [ "${subset^^}" == "SIMPLEX_ONLY" ];then
     
-        samtools fastq $bam_file -d 'dx:0' >> ${library_root_directory}/${library_root_name}_fastq}/${library_root_name}_${subset}.${type}.fastq
-        samtools fastq $bam_file -d 'dx:-1' >> ${library_root_directory}/${library_root_name}_fastq/${library_root_name}_${subset}.${type}.fastq
+        samtools fastq $bam_file -d 'dx:0' > ${library_root_directory}/${library_root_name}_fastq}/${library_root_name}_${subset}.${type}.fastq
+        samtools fastq $bam_file -d 'dx:-1' > ${library_root_directory}/${library_root_name}_fastq/${library_root_name}_${subset}.${type}.fastq
 
     elif [ "${subset^^}" == "DUPLEX_ONLY" ];then
     
-        echo fastq $bam_file -d 'dx:1' >> ${library_root_directory}/${library_root_name}_fastq/${library_root_name}_${subset}.${type}.fastq
+        echo fastq $bam_file -d 'dx:1' > ${library_root_directory}/${library_root_name}_fastq/${library_root_name}_${subset}.${type}.fastq
 
     fi
 

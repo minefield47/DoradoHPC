@@ -23,7 +23,7 @@ mkdir ${library_root_directory}/${library_root_name}_compressed
 #Original Pod5 Files
 if [ -d ${library_root_directory}/${library_root_name}_pod5 ]; then
     echo found pod5
-    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_pod5_compressed.tar.gz ${library_root_directory}/${library_root_name}_pod5
+    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_pod5_compressed.tar.gz -C ${library_root_directory}/${library_root_name}_pod5 .
 fi
 
 #Pod5_by_channel
@@ -31,7 +31,7 @@ if [ -d ${library_root_directory}/${library_root_name}_pod5_by_channel ]; then
 
     # mkdir ${library_root_directory}/${library_root_name}_compressed/
     echo found pod5_by_channel
-    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_pod5_by_channel.tar.gz ${library_root_directory}/${library_root_name}_pod5_by_channel
+    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_pod5_by_channel.tar.gz -C ${library_root_directory}/${library_root_name}_pod5_by_channel .
 fi
 ################################################################################
 # Basecalled/Trim                                                              #
@@ -41,14 +41,14 @@ fi
 if [ -d ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_untrimmed_bam ]; then
 
     echo found untrimmed.bam
-    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_untrimmed.bam.tar.gz ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_untrimmed_bam
+    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_untrimmed_bam.tar.gz -C ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_untrimmed_bam . 
 fi
 
 #Untrimmed summary
 if [ -d ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_untrimmed_summary ]; then
 
     echo found untrimmed.bam
-    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_untrimmed_summary.tar.gz ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_untrimmed_summary
+    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_untrimmed_summary.tar.gz -C ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_untrimmed_summary .
 fi
 
 
@@ -56,7 +56,7 @@ fi
 if [ -d ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam ]; then
 
     echo found untrimmed.bam
-    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_trimmed.bam.tar.gz ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam
+    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_trimmed_bam.tar.gz -C ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam .
 fi
 
 
@@ -64,18 +64,18 @@ fi
 if [ -d ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_summary ]; then
 
     echo found untrimmed.bam
-    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_trimmed_summary.tar.gz ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_summary
+    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_trimmed_summary.tar.gz -C ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_summary .
 fi
 
 
 ################################################################################
-# Fastq                                                                        #
+# Fastqs                                                                        #
 ################################################################################
 
 if [ -d ${library_root_directory}/${library_root_name}_trimmed_fastq ]; then
 
     echo found untrimmed.bam
-    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_trimmed.fastq.tar.gz ${library_root_directory}/${library_root_name}_trimmed_fastq
+    tar -czf ${library_root_directory}/${library_root_name}_compressed/${library_root_name}_trimmed_fastq.tar.gz -C ${library_root_directory}/${library_root_name}_trimmed_fastq .
 fi
 
 

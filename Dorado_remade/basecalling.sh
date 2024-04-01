@@ -44,7 +44,7 @@ unset -v pod5_directory #Where are the files coming from? <directory path>
 
 #Set the optional arguments to default parameters. 
 untrim_summary="FALSE"
-trim_summary="TRUE"
+trim_summary="FALSE"
 type_array=("-f trimmed")
 subset_array=("-s ALL" "-s SIMPLEX_ONLY")
 #i = input directory. 
@@ -52,7 +52,7 @@ subset_array=("-s ALL" "-s SIMPLEX_ONLY")
 #t=trim_summary.
 
 #Input switch case for determining 
-while getopts "p:u:t:f:s:h" OPTION;do 
+while getopts "p:utf:s:h" OPTION;do 
     case $OPTION in
         h) 
             Help #Run the Help function (above) and exit. 
@@ -60,19 +60,9 @@ while getopts "p:u:t:f:s:h" OPTION;do
         p) 
             pod5_directory="$OPTARG" ;;
         u) 
-            if [ ${OPTARG^^} == TRUE ] || [ ${OPTARG^^} == FALSE ]; then #Do you want a summary file of the untrimmed reads?  TRUE OR FALSE?
-                untrim_summary="${OPTARG^^}"
-            else #Error Checker.
-                echo "Non-Boolean True/False given for -u"
-                exit 1
-            fi;;
+            untrim_summary="TRUE" ;;
         t) 
-            if [ ${OPTARG^^} == TRUE ] || [ ${OPTARG^^} == FALSE ]; then #Do you want a summary file of the untrimmed reads?  TRUE OR FALSE?
-                trim_summary="${OPTARG^^}"
-            else #Error Checker.
-                echo "Non-Boolean True/False given for -t"
-                exit 1
-            fi;;
+            trim_summary="TRUE" ;;
         s) 
             if [ ${OPTARG^^} == "ALL" ] || [ ${OPTARG^^} == "DUPLEX_NO_PARENTS" ] || [ ${OPTARG^^} == "SIMPLEX_ONLY" ] || [ ${OPTARG^^} == "SIMPLEX_ONLY" ]; then #What subset of reads do you want?
                 subset_array+=("-s ${OPTARG^^}")
@@ -121,12 +111,6 @@ pod5_directory=${pod5_directory%?} #If yes, remove the last character (/) of str
 fi 
 
 
-
-################################################################################
-# Pod5 Separating by channel                                                   #
-################################################################################
-#Separate the input directory into pod5 files by channel.
-
 bsub \
 -J pod5_sorting_${library_root_name} \
 -n 1 \
@@ -135,86 +119,95 @@ bsub \
 -e stderr.%J \
 "~/dorado/pod5_sorting.sh $pod5_directory"
 
-#-J pod5_sorting = jobname
-#-n 1 = Number of Cores
-#-W 60 = Walltime
-#-o stdout.%J #output - %J is the job-id
-#-e stderr.%J #error - %J is the job-id
-#Script location and the necessary arguments. 
-# ${untrim_summary^^} coerces the output to being in all caps for simplicity
-
 
 ################################################################################
 # Basecalling                                                                  #
 ################################################################################
 #Submit to cluster the job for basecalling the separated channels 1-512. 
-bjobs
-
-sleep 30 
 
 bsub \
+-J Dorado_${library_root_name} \
 -w "done("pod5_sorting_${library_root_name}")" \
--J Dorado_by_channel_${library_root_name}[1-512] \
--n 1 \
+-n 32 \
+-R "span[hosts=1]" \
 -W 30 \
--R "select[a100]" \
+-R "select[h100]" \
 -q new_gpu \
--gpu "num=1:mode=shared:mps=no" \
--o stdout.%J \
--e stderr.%J \
-"~/dorado/dorado.sh ${library_root_directory}/${library_root_name}_pod5_by_channel $untrim_summary $trim_summary" 
+-gpu "num=1:mode=exclusive_process:mps=no" \
+-o Dorado.stdout.%J \
+-e Dorado.stderr.%J \
+"~/dorado/dorado.sh ${library_root_directory}/${library_root_name}_pod5_by_channel" 
 
 #-J pod5_sorting = jobname
 #-n 1 = Number of Cores
 #-W 60 = Walltime
 #-o stdout.%J #output - %J is the job-id
 #-e stderr.%J #error - %J is the job-id
-#-R "select[a100||a10||rtx2080||gtx1080]" = request either an a100, a10, rtx2080, or gtx1080 (the compatible GPUs)
+#-R "select[a100||h100]" = request either an a100 or h100 (the compatible GPUs)
 #-q gpu = Request a GPU
 #-gpu "num=1:mode=shared:mps=no" = Request 1 gpu in shared mode without MPS being turned on. 
 
+
 ################################################################################
-# Fixer                                                                        #
+# Trimming                                                                     #
 ################################################################################
-#Because LSB can sometimes send jobs to the cluster/GPUs that do not have enough memory (crashing the basecalling)
-#This script waits for Dorado_by_channel to finish and runs a quanitative analyzer that either passes and ends,
-#or resubmits Dorado for the channels that failed. 
-bjobs
-
-sleep 5
-
-bjobs
-
 bsub \
--w "done("Dorado_by_channel_${library_root_name}")" \
--J fixer_${library_root_name} \
+-J trim_${library_root_name} \
+-w "done("Dorado_${library_root_name}")" \
 -n 1 \
--W 05 \
--q short \
--o Fixer_stdout.%J \
--e Fixer_stderr.%J \
-"~/dorado/fixer.sh -u $untrim_summary -t $trim_summary" ${type_array[@]} ${subset_array[@]} "${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed_bam" 
+-W 30 \
+-q serial \
+-o trim.stdout.%J \
+-e trim.stderr.%J \
+"~/dorado/trimming.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_untrimmed.bam"
 
 
-
-
-#This script should take a maximum of 1 minute, 3 is buffer. 
-#The indir/untrim_summary/trim_summary are passed to fixer for utilization during job submission. 
 
 ################################################################################
-# Compressing                                                                  #
+# Summary                                                                      #
 ################################################################################
-#When all files are finished being utilized, submit this compressing script that takes all outputs and tars/gzips them.
+if [ ${untrim_summary} == "TRUE" ];then
+bsub \
+-J summary_untrim_${library_root_name} \
+-w "done("Dorado_${library_root_name}")" \
+-n 1 \
+-W 30 \
+-q serial \
+-o summary.stdout.%J \
+-e summary.stderr.%J \
+"~/dorado/summary.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_untrimmed.bam"
+fi
 
-#Currently turned off as it creates an archive of files down the absolute path. Need to fix. 
+if [ "$trim_summary" = TRUE ];then
+bsub \
+-J summary_trim_${library_root_name} \
+-w "done("trim_${library_root_name}")" \
+-n 1 \
+-W 30 \
+-q serial \
+-o summary.stdout.%J \
+-e summary.stderr.%J \
+"~/dorado/summary.sh ${library_root_directory}/${library_root_name}_basecall_trim/${library_root_name}_trimmed.bam"
+fi
 
-# bsub \
-# -w "done("seqtools_to_fastq_${library_directory_name}")" \
-# -J compresser_${library_directory_name} \
-# -n 1 \
-# -W 240 \
-# -q serial \
-# -o compresser.stdout.%J \
-# -e compresser.stderr.%J_%I \
-# "~/dorado/compresser.sh <library_directory>"
+# ################################################################################
+# # Fastq Exportation                                                            #
+# ################################################################################
 
+for type in ${type_array}; do
+bsub \
+-J bam_${type}_fastq_${type}_${library_root_name} \
+-w "done("Dorado_${library_root_name}")" \
+-n 1 \
+-W 30 \
+-q serial \
+-o samtool.fastq.${type}.stdout.%J \
+-e samtool.fastq.${type}.stderr.%J \
+"~/dorado/samtools_fastq.sh -b ${basecall_trim_directory}/${library_root_name}_${type}_bam " ${subset_array[@]} " -f ${type}"
+done
+
+# ################################################################################
+# # Compression                                                                  #
+# ################################################################################
+
+bjobs
