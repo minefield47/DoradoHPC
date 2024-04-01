@@ -13,7 +13,7 @@ if [ "${summary_directory:0-1}" == "/" ]; then #Check if the last character in t
 summary_directory=${summary_directory%?} #If yes, remove the last character (/) of string to have it be in compliance with dorado. 
 fi 
 
-echo $summary_directory
+summary_directory_name=$(basename $summary_directory)
 #This is the absolute path to the library...used to determine where the pod5 files are located. 
 library_root_directory=$(dirname $(dirname $summary_directory))
 
@@ -22,4 +22,4 @@ echo $library_root_directory
 # From previous example...returns: bp_g-madeup
 library_root_name=$(basename $library_root_directory)
 
-/home/arb4107/apps/tsv-utils/bin/tsv-append -H ${summary_directory}/*.tsv >> ${library_root_directory}/${library_root_name}_all.tsv
+/home/arb4107/apps/tsv-utils/bin/tsv-append -H ${summary_directory}/*.tsv >> ${library_root_directory}/${summary_directory_name}_all.tsv
